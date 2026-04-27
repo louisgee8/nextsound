@@ -1,0 +1,59 @@
+# ============================================
+# NextSound docker-compose.yml
+# ============================================
+# Two services: backend (Express API) and frontend (nginx serving React).
+# Both join a private bridge network so they can resolve each other by
+# service name (backend, frontend) over internal DNS.
+#
+# Run:   docker compose up --build
+# Stop:  docker compose down
+# Logs:  docker compose logs -f backend
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    container_name: nextsound-backend
+    # NOTE: backend port 3001 is intentionally NOT published. The container is
+    # reachable only on the internal nextsound-net bridge network via DNS name
+    # 'backend'. nginx (frontend service) proxies /api/* to backend:3001. This
+    # closes the only path that bypassed nginx, shrinking attack surface.
+    # For local debugging, exec into the container: `docker compose exec backend wget -qO- http://localhost:3001/health`
+    environment:
+      - PORT=3001
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - FRONTEND_URL=http://localhost:8080
+    networks:
+      - nextsound-net
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Build args feed Vite at build time. These get compiled into the JS
+      # bundle and are PUBLIC — anyone can read them via View Source.
+      # Empty VITE_PROXY_SERVER_URL = relative /api/ paths = served by nginx.
+      args:
+        VITE_USE_BACKEND_PROXY: "true"
+        VITE_PROXY_SERVER_URL: ""
+        VITE_ENABLE_OFFLINE_CACHE: "true"
+        VITE_API_RETRY_ENABLED: "true"
+    container_name: nextsound-frontend
+    ports:
+      - "8080:80"
+    # Wait for backend to be HEALTHY (not just started) before nginx boots.
+    # service_healthy reads the HEALTHCHECK in Dockerfile.server. Eliminates the
+    # race where nginx returns 502s on /api/* during backend boot.
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - nextsound-net
+    restart: unless-stopped
+
+networks:
+  nextsound-net:
+    driver: bridge

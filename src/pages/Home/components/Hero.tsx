@@ -1,13 +1,13 @@
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay } from "swiper";
-import { useRef } from "react";
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Autoplay } from 'swiper'
+import { useRef } from 'react'
 
-import HeroSlide from "./HeroSlide";
-import { ITrack } from "@/types";
-import { getImageUrl } from "@/utils/helper";
+import HeroSlide from './HeroSlide'
+import type { ITrack } from '@/types'
+import { getImageUrl } from '@/utils/helper'
 
 const Hero = ({ tracks }: { tracks: ITrack[] }) => {
-  const swiperRef = useRef<any>(null);
+  const swiperRef = useRef<any>(null)
 
   // Note: Modal functionality removed - autoplay runs continuously
 
@@ -30,17 +30,17 @@ const Hero = ({ tracks }: { tracks: ITrack[] }) => {
             style={{
               backgroundImage: `
               linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.5)),url('${getImageUrl(track.backdrop_path)}'`,
-              backgroundPosition: "center",
-              backgroundSize: "cover",
+              backgroundPosition: 'center',
+              backgroundSize: 'cover',
             }}
             className=" h-full w-full will-change-transform motion-reduce:transform-none"
           >
             {({ isActive }) => (isActive ? <HeroSlide track={track} /> : null)}
           </SwiperSlide>
-        );
+        )
       })}
     </Swiper>
-  );
-};
+  )
+}
 
-export default Hero;
+export default Hero

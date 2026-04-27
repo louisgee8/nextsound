@@ -1,18 +1,18 @@
-import { memo } from "react";
-import { m } from "framer-motion";
+import { memo } from 'react'
+import { m } from 'framer-motion'
 
-import Image from "../Image";
-import { cn, getImageUrl } from "@/utils/helper";
-import { useMotion } from "@/hooks/useMotion";
+import Image from '../Image'
+import { cn, getImageUrl } from '@/utils/helper'
+import { useMotion } from '@/hooks/useMotion'
 
 interface PosterPropsType {
-  posterPath: string;
-  title: string;
-  className?: string;
+  posterPath: string
+  title: string
+  className?: string
 }
 
 const Poster = ({ posterPath, title, className }: PosterPropsType) => {
-  const { zoomIn } = useMotion();
+  const { zoomIn } = useMotion()
   return (
     <div className={cn(`md:block hidden `, className)}>
       <m.div
@@ -30,7 +30,7 @@ const Poster = ({ posterPath, title, className }: PosterPropsType) => {
         />
       </m.div>
     </div>
-  );
-};
+  )
+}
 
-export default memo(Poster);
+export default memo(Poster)

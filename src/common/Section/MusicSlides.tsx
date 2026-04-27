@@ -1,21 +1,24 @@
-import { FC } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
+import type { FC } from 'react'
+import { Swiper, SwiperSlide } from 'swiper/react'
 
-import { TrackCard } from "@/components/ui/TrackCard";
-import { ITrack } from "@/types";
+import { TrackCard } from '@/components/ui/TrackCard'
+import type { ITrack } from '@/types'
 
 interface MusicSlidesProps {
-  tracks: ITrack[];
-  category: string;
-  useModernCards?: boolean;
+  tracks: ITrack[]
+  category: string
+  useModernCards?: boolean
 }
 
-const MusicSlides: FC<MusicSlidesProps> = ({ tracks, category, useModernCards: _useModernCards = true }) => {
+const MusicSlides: FC<MusicSlidesProps> = ({
+  tracks,
+  category,
+  useModernCards: _useModernCards = true,
+}) => {
   const handlePlay = (track: ITrack) => {
-    console.log('🎵 Track clicked (audio player removed):', track.name || track.title);
+    console.log('🎵 Track clicked (audio player removed):', track.name || track.title)
     // Audio player functionality removed - this is now just a visual music browser
-  };
-
+  }
 
   return (
     <Swiper slidesPerView="auto" spaceBetween={15} className="mySwiper">
@@ -33,10 +36,10 @@ const MusicSlides: FC<MusicSlidesProps> = ({ tracks, category, useModernCards: _
               variant="detailed"
             />
           </SwiperSlide>
-        );
+        )
       })}
     </Swiper>
-  );
-};
+  )
+}
 
-export default MusicSlides;
+export default MusicSlides

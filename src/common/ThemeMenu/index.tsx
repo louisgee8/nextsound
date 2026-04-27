@@ -1,30 +1,29 @@
-import { m } from "framer-motion";
+import { m } from 'framer-motion'
 
-import { useTheme } from "@/context/themeContext";
-import { themeOptions } from "@/constants";
-import { useOnClickOutside } from "@/hooks/useOnClickOutside";
-import { cn } from "@/utils/helper";
-import { useMotion } from "@/hooks/useMotion";
-import { useOnKeyPress } from "@/hooks/useOnKeyPress";
+import { useTheme } from '@/context/themeContext'
+import { themeOptions } from '@/constants'
+import { useOnClickOutside } from '@/hooks/useOnClickOutside'
+import { cn } from '@/utils/helper'
+import { useMotion } from '@/hooks/useMotion'
+import { useOnKeyPress } from '@/hooks/useOnKeyPress'
 
 const ThemeMenu = () => {
-  const { theme, setTheme, setShowThemeOptions, closeMenu } =
-    useTheme();
-  const { zoomIn } = useMotion();
+  const { theme, setTheme, setShowThemeOptions, closeMenu } = useTheme()
+  const { zoomIn } = useMotion()
 
   const { ref } = useOnClickOutside({
-    action: closeMenu
-  });
-  
+    action: closeMenu,
+  })
+
   useOnKeyPress({
     action: closeMenu,
-    key: "Escape"
+    key: 'Escape',
   })
 
   const changeTheme = (theme: string) => {
-    setTheme(theme);
-    setShowThemeOptions(false);
-  };
+    setTheme(theme)
+    setShowThemeOptions(false)
+  }
 
   return (
     <m.ul
@@ -33,25 +32,25 @@ const ThemeMenu = () => {
       initial="hidden"
       animate="show"
       exit="hidden"
-      className="absolute top-[200%] right-[25%] bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden backdrop-blur-sm"
+      className="absolute top-[200%] right-[25%] bg-paper dark:bg-leather-elevated shadow-lg border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden backdrop-blur-sm"
     >
       {themeOptions.map((option, index) => (
         <li
           key={index}
           className={cn(
-            "hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300",
-            theme === option.title && "bg-gray-100 dark:bg-gray-700"
+            'hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300',
+            theme === option.title && 'bg-gray-100 dark:bg-gray-700',
           )}
         >
           <button
             name="theme"
             type="button"
             className={cn(
-              "flex flex-row items-center gap-3 w-full font-medium py-2 px-4 text-[14px] text-gray-700 dark:text-gray-200",
-              theme === option.title && "text-gray-900 dark:text-white font-semibold"
+              'flex flex-row items-center gap-3 w-full font-medium py-2 px-4 text-[14px] text-gray-700 dark:text-gray-200',
+              theme === option.title && 'text-gray-900 dark:text-white font-semibold',
             )}
             onClick={() => {
-              changeTheme(option.title);
+              changeTheme(option.title)
             }}
           >
             {<option.icon />}
@@ -60,7 +59,7 @@ const ThemeMenu = () => {
         </li>
       ))}
     </m.ul>
-  );
-};
+  )
+}
 
-export default ThemeMenu;
+export default ThemeMenu

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Button } from 'react-aria-components';
+import React, { useEffect, useRef } from 'react'
+import { Button } from 'react-aria-components'
 import {
   FiSearch,
   FiMusic,
@@ -11,23 +11,24 @@ import {
   FiSettings,
   FiHelpCircle,
   FiNavigation,
-  FiTrash2
-} from 'react-icons/fi';
-import { cn } from '@/utils/helper';
-import { useCommandPalette, SearchResult } from '@/hooks/useCommandPalette';
+  FiTrash2,
+} from 'react-icons/fi'
+import { cn } from '@/utils/helper'
+import type { SearchResult } from '@/hooks/useCommandPalette'
+import { useCommandPalette } from '@/hooks/useCommandPalette'
 
 interface CommandPaletteProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  onItemSelect?: (item: SearchResult) => void;
-  className?: string;
+  isOpen?: boolean
+  onClose?: () => void
+  onItemSelect?: (item: SearchResult) => void
+  className?: string
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
   isOpen = false,
   onClose,
   onItemSelect,
-  className
+  className,
 }) => {
   const {
     query,
@@ -41,98 +42,117 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     isLoading,
     error,
     handleItemSelect,
-    clearHistory
-  } = useCommandPalette({ onItemSelect, onClose });
+    clearHistory,
+  } = useCommandPalette({ onItemSelect, onClose })
 
-  const inputRef = useRef<HTMLInputElement>(null);
-  const resultsRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null)
+  const resultsRef = useRef<HTMLDivElement>(null)
 
   // Note: Using real Spotify API data via useCommandPalette hook
 
   // Focus input when opened
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      inputRef.current.focus();
+      inputRef.current.focus()
     }
-  }, [isOpen]);
+  }, [isOpen])
 
   // Reset selected index when results change
   useEffect(() => {
-    setSelectedIndex(0);
-  }, [allResults, setSelectedIndex]);
+    setSelectedIndex(0)
+  }, [allResults, setSelectedIndex])
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return;
+      if (!isOpen) return
 
       switch (e.key) {
         case 'Escape':
-          e.preventDefault();
-          onClose?.();
-          break;
+          e.preventDefault()
+          onClose?.()
+          break
         case 'ArrowDown':
-          e.preventDefault();
-          setSelectedIndex(prev => Math.min(prev + 1, allResults.length - 1));
-          break;
+          e.preventDefault()
+          setSelectedIndex((prev) => Math.min(prev + 1, allResults.length - 1))
+          break
         case 'ArrowUp':
-          e.preventDefault();
-          setSelectedIndex(prev => Math.max(prev - 1, 0));
-          break;
+          e.preventDefault()
+          setSelectedIndex((prev) => Math.max(prev - 1, 0))
+          break
         case 'Enter':
-          e.preventDefault();
+          e.preventDefault()
           if (allResults[selectedIndex]) {
-            handleItemSelect(allResults[selectedIndex]);
+            handleItemSelect(allResults[selectedIndex])
           }
-          break;
+          break
       }
-    };
+    }
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, allResults, selectedIndex, handleItemSelect, onClose, setSelectedIndex]);
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, allResults, selectedIndex, handleItemSelect, onClose, setSelectedIndex])
 
   // Item selection is now handled by the useCommandPalette hook
 
   const getItemIcon = (type: SearchResult['type']) => {
     switch (type) {
-      case 'track': return FiMusic;
-      case 'album': return FiDisc;
-      case 'artist': return FiUser;
-      case 'playlist': return FiMusic;
-      case 'command': return FiSearch;
-      default: return FiMusic;
+      case 'track':
+        return FiMusic
+      case 'album':
+        return FiDisc
+      case 'artist':
+        return FiUser
+      case 'playlist':
+        return FiMusic
+      case 'command':
+        return FiSearch
+      default:
+        return FiMusic
     }
-  };
+  }
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'navigation': return FiNavigation;
-      case 'player': return FiPlay;
-      case 'settings': return FiSettings;
-      case 'help': return FiHelpCircle;
-      default: return FiSearch;
+      case 'navigation':
+        return FiNavigation
+      case 'player':
+        return FiPlay
+      case 'settings':
+        return FiSettings
+      case 'help':
+        return FiHelpCircle
+      default:
+        return FiSearch
     }
-  };
+  }
 
   const getItemTypeLabel = (type: SearchResult['type']) => {
     switch (type) {
-      case 'track': return 'Track';
-      case 'album': return 'Album';
-      case 'artist': return 'Artist';
-      case 'playlist': return 'Playlist';
-      case 'command': return 'Command';
-      default: return '';
+      case 'track':
+        return 'Track'
+      case 'album':
+        return 'Album'
+      case 'artist':
+        return 'Artist'
+      case 'playlist':
+        return 'Playlist'
+      case 'command':
+        return 'Command'
+      default:
+        return ''
     }
-  };
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
-    <div className={cn(
-      "fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center pt-20",
-      className
-    )}>
+    <div
+      className={cn(
+        'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center pt-20',
+        className,
+      )}
+    >
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-2xl mx-4 max-h-96 flex flex-col overflow-hidden">
         {/* Search Input */}
         <div className="flex items-center px-4 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -202,7 +222,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   </div>
                   <div className="space-y-1">
                     {recentItems.map((item, _index) => {
-                      const Icon = getItemIcon(item.type);
+                      const Icon = getItemIcon(item.type)
                       return (
                         <div
                           key={item.id}
@@ -231,7 +251,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                             </div>
                           </div>
                         </div>
-                      );
+                      )
                     })}
                   </div>
                   <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
@@ -239,8 +259,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       <div className="flex items-center p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors duration-200">
                         <FiClock className="w-5 h-5 text-blue-500 mr-3" />
                         <div>
-                          <div className="font-medium text-gray-900 dark:text-white">Search Music</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">Find tracks, albums, artists</div>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            Search Music
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            Find tracks, albums, artists
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -255,8 +279,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     <div className="flex items-center p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors duration-200">
                       <FiClock className="w-5 h-5 text-blue-500 mr-3" />
                       <div>
-                        <div className="font-medium text-gray-900 dark:text-white">Search Music</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Find tracks, albums, artists</div>
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          Search Music
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          Find tracks, albums, artists
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -278,18 +306,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     </span>
                   </div>
                   {exactMatches.map((item, index) => {
-                    const Icon = getItemIcon(item.type);
-                    const CategoryIcon = item.type === 'command' ? getCategoryIcon(item.data?.category) : Icon;
-                    const isSelected = index === selectedIndex;
+                    const Icon = getItemIcon(item.type)
+                    const CategoryIcon =
+                      item.type === 'command' ? getCategoryIcon(item.data?.category) : Icon
+                    const isSelected = index === selectedIndex
 
                     return (
                       <div
                         key={item.id}
                         className={cn(
-                          "flex items-center px-4 py-3 cursor-pointer transition-all duration-200",
+                          'flex items-center px-4 py-3 cursor-pointer transition-all duration-200',
                           isSelected
-                            ? "bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-500"
-                            : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                            ? 'bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-500'
+                            : 'hover:bg-gray-50 dark:hover:bg-gray-800',
                         )}
                         onClick={() => handleItemSelect(item)}
                       >
@@ -320,14 +349,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                         {/* Item type badge */}
                         <div className="ml-3 shrink-0">
-                          <span className={cn(
-                            "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
-                            item.type === 'track' && "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
-                            item.type === 'album' && "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
-                            item.type === 'artist' && "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400",
-                            item.type === 'playlist' && "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400",
-                            item.type === 'command' && "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
-                          )}>
+                          <span
+                            className={cn(
+                              'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
+                              item.type === 'track' &&
+                                'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+                              item.type === 'album' &&
+                                'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+                              item.type === 'artist' &&
+                                'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
+                              item.type === 'playlist' &&
+                                'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
+                              item.type === 'command' &&
+                                'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+                            )}
+                          >
                             {getItemTypeLabel(item.type)}
                           </span>
                         </div>
@@ -350,9 +386,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                           </div>
                         )}
                       </div>
-                    );
+                    )
                   })}
-
                 </div>
               )}
 
@@ -378,19 +413,20 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     )}
                   </div>
                   {recommendations.map((item, index) => {
-                    const Icon = getItemIcon(item.type);
-                    const CategoryIcon = item.type === 'command' ? getCategoryIcon(item.data?.category) : Icon;
-                    const globalIndex = exactMatches.length + index;
-                    const isSelected = globalIndex === selectedIndex;
+                    const Icon = getItemIcon(item.type)
+                    const CategoryIcon =
+                      item.type === 'command' ? getCategoryIcon(item.data?.category) : Icon
+                    const globalIndex = exactMatches.length + index
+                    const isSelected = globalIndex === selectedIndex
 
                     return (
                       <div
                         key={item.id}
                         className={cn(
-                          "flex items-center px-4 py-3 cursor-pointer transition-all duration-200",
+                          'flex items-center px-4 py-3 cursor-pointer transition-all duration-200',
                           isSelected
-                            ? "bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-500"
-                            : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                            ? 'bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-500'
+                            : 'hover:bg-gray-50 dark:hover:bg-gray-800',
                         )}
                         onClick={() => handleItemSelect(item)}
                       >
@@ -421,14 +457,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                         {/* Item type badge */}
                         <div className="ml-3 shrink-0">
-                          <span className={cn(
-                            "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
-                            item.type === 'track' && "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
-                            item.type === 'album' && "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
-                            item.type === 'artist' && "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400",
-                            item.type === 'playlist' && "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400",
-                            item.type === 'command' && "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
-                          )}>
+                          <span
+                            className={cn(
+                              'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
+                              item.type === 'track' &&
+                                'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+                              item.type === 'album' &&
+                                'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+                              item.type === 'artist' &&
+                                'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
+                              item.type === 'playlist' &&
+                                'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
+                              item.type === 'command' &&
+                                'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+                            )}
+                          >
                             {getItemTypeLabel(item.type)}
                           </span>
                         </div>
@@ -451,7 +494,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                           </div>
                         )}
                       </div>
-                    );
+                    )
                   })}
                 </div>
               )}
@@ -477,18 +520,27 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <div className="flex items-center space-x-4">
               <span>
-                <kbd className="px-1 py-0.5 bg-white dark:bg-gray-700 rounded border text-xs">↑↓</kbd> to navigate
+                <kbd className="px-1 py-0.5 bg-white dark:bg-gray-700 rounded border text-xs">
+                  ↑↓
+                </kbd>{' '}
+                to navigate
               </span>
               <span>
-                <kbd className="px-1 py-0.5 bg-white dark:bg-gray-700 rounded border text-xs">↵</kbd> to select
+                <kbd className="px-1 py-0.5 bg-white dark:bg-gray-700 rounded border text-xs">
+                  ↵
+                </kbd>{' '}
+                to select
               </span>
             </div>
             <span>
-              <kbd className="px-1 py-0.5 bg-white dark:bg-gray-700 rounded border text-xs">ESC</kbd> to close
+              <kbd className="px-1 py-0.5 bg-white dark:bg-gray-700 rounded border text-xs">
+                ESC
+              </kbd>{' '}
+              to close
             </span>
           </div>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}

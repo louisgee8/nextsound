@@ -1,39 +1,38 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
 export const getErrorMessage = (error: any) => {
-  let errorMessage;
+  let errorMessage
 
   if (error) {
-    if ("status" in error) {
-      const errMsg =
-        "error" in error ? error.error : JSON.stringify(error.data);
+    if ('status' in error) {
+      const errMsg = 'error' in error ? error.error : JSON.stringify(error.data)
 
-      errorMessage = errMsg;
+      errorMessage = errMsg
     } else {
-      errorMessage = error.message;
+      errorMessage = error.message
     }
   } else {
-    errorMessage = "Unable to fetch the data. Please try again later.";
+    errorMessage = 'Unable to fetch the data. Please try again later.'
   }
 
-  return errorMessage;
-};
+  return errorMessage
+}
 
 export const saveTheme = (theme: string) => {
-  localStorage.setItem("theme", theme);
-};
+  localStorage.setItem('theme', theme)
+}
 
 export const getTheme = () => {
-  const theme = localStorage.getItem("theme");
-  return theme ? theme : "";
-};
+  const theme = localStorage.getItem('theme')
+  return theme ? theme : ''
+}
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
 // Simplified helper for Spotify images only
 export const getImageUrl = (imagePath: string) => {
-  return imagePath || '';  // All images are now full URLs from Spotify
-};
+  return imagePath || '' // All images are now full URLs from Spotify
+}

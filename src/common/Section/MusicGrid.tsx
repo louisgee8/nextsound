@@ -1,15 +1,16 @@
-import { FC, useState } from "react";
-import { TrackCard } from "@/components/ui/TrackCard";
-import { ITrack } from "@/types";
+import type { FC } from 'react'
+import { useState } from 'react'
+import { TrackCard } from '@/components/ui/TrackCard'
+import type { ITrack } from '@/types'
 
 interface MusicGridProps {
-  tracks: ITrack[];
-  category: string;
-  initialDisplayCount?: number;
-  loadMoreCount?: number;
-  onLoadMore?: () => void;
-  isLoadingMore?: boolean;
-  hasMoreContent?: boolean;
+  tracks: ITrack[]
+  category: string
+  initialDisplayCount?: number
+  loadMoreCount?: number
+  onLoadMore?: () => void
+  isLoadingMore?: boolean
+  hasMoreContent?: boolean
 }
 
 const MusicGrid: FC<MusicGridProps> = ({
@@ -19,30 +20,30 @@ const MusicGrid: FC<MusicGridProps> = ({
   loadMoreCount = 18, // Load 3 more rows each time
   onLoadMore,
   isLoadingMore = false,
-  hasMoreContent = false
+  hasMoreContent = false,
 }) => {
-  const [visibleCount, setVisibleCount] = useState(initialDisplayCount);
+  const [visibleCount, setVisibleCount] = useState(initialDisplayCount)
 
   const handlePlay = (track: ITrack) => {
-    console.log('🎵 Track clicked (audio player removed):', track.name || track.title);
+    console.log('🎵 Track clicked (audio player removed):', track.name || track.title)
     // Audio player functionality removed - this is now just a visual music browser
-  };
+  }
 
   const handleLoadMoreClick = () => {
     if (tracks.length > visibleCount) {
       // Show more of existing tracks first
-      setVisibleCount(prev => Math.min(prev + loadMoreCount, tracks.length));
+      setVisibleCount((prev) => Math.min(prev + loadMoreCount, tracks.length))
     } else if (onLoadMore && hasMoreContent) {
       // Load new tracks from API
-      onLoadMore();
-      setVisibleCount(prev => prev + loadMoreCount);
+      onLoadMore()
+      setVisibleCount((prev) => prev + loadMoreCount)
     }
-  };
+  }
 
-  const displayedTracks = tracks.slice(0, visibleCount);
+  const displayedTracks = tracks.slice(0, visibleCount)
   const showLoadMoreButton =
-    (tracks.length > visibleCount) || // More existing tracks to show
-    (hasMoreContent && !isLoadingMore); // Or more content available from API
+    tracks.length > visibleCount || // More existing tracks to show
+    (hasMoreContent && !isLoadingMore) // Or more content available from API
 
   return (
     <div className="w-full">
@@ -75,7 +76,7 @@ const MusicGrid: FC<MusicGridProps> = ({
                 Loading...
               </div>
             ) : (
-              "Load More"
+              'Load More'
             )}
           </button>
         </div>
@@ -91,7 +92,7 @@ const MusicGrid: FC<MusicGridProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default MusicGrid;
+export default MusicGrid

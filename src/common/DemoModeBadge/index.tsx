@@ -1,10 +1,10 @@
-import { shouldUseMockData } from "@/data/mockMusicData";
+import { shouldUseMockData } from '@/data/mockMusicData'
 
 const DemoModeBadge = () => {
-  const isDemoMode = shouldUseMockData();
+  const isDemoMode = shouldUseMockData()
 
   if (!isDemoMode) {
-    return null;
+    return null
   }
 
   return (
@@ -12,7 +12,7 @@ const DemoModeBadge = () => {
       <div className="w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
       <span>No API Mode</span>
     </div>
-  );
-};
+  )
+}
 
-export default DemoModeBadge;
+export default DemoModeBadge

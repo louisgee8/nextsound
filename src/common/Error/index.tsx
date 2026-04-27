@@ -1,19 +1,19 @@
-import { BiError } from "react-icons/bi";
-import { cn } from "@/utils/helper";
+import { BiError } from 'react-icons/bi'
+import { cn } from '@/utils/helper'
 
 interface ErrorProps {
-  className?: string | undefined;
-  error: string;
-  onRetry?: () => void;
-  showRetry?: boolean;
+  className?: string | undefined
+  error: string
+  onRetry?: () => void
+  showRetry?: boolean
 }
 
-const Error = ({ className = "h-screen", error, onRetry, showRetry = false }: ErrorProps) => {
+const Error = ({ className = 'h-screen', error, onRetry, showRetry = false }: ErrorProps) => {
   return (
     <div
       className={cn(
-        `relative dark:bg-black bg-main-color top-0 left-0 w-screen flex justify-center items-center`,
-        className
+        `relative dark:bg-leather bg-paper top-0 left-0 w-screen flex justify-center items-center`,
+        className,
       )}
     >
       <div className="flex flex-col items-center gap-4 text-center">
@@ -31,7 +31,7 @@ const Error = ({ className = "h-screen", error, onRetry, showRetry = false }: Er
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Error;
+export default Error

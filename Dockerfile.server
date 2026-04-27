@@ -1,0 +1,65 @@
+# syntax=docker/dockerfile:1.7
+
+# ============================================
+# NextSound Backend - Express API
+# ============================================
+# Single-stage build. The backend is plain JavaScript, no compilation step.
+# (If we add TypeScript later, convert this to multi-stage like the frontend.)
+
+FROM node:20-alpine AS runner
+
+# Work inside /app. Same convention as the frontend Dockerfile.
+WORKDIR /app
+
+# WORKDIR creates /app owned by root. Flip ownership to the 'node' user
+# so we can install and write here as a non-root user from the start.
+RUN chown node:node /app
+
+# Tell Node and downstream packages they're in production mode.
+# Express disables verbose error pages, npm skips devDependency hooks,
+# many libraries enable performance optimizations behind this flag.
+ENV NODE_ENV=production
+
+# Drop privileges EARLY. Everything below runs as the 'node' user (UID 1000).
+# This is the recommended pattern from the official Node Docker docs:
+# install dependencies AS node so node_modules is owned by node automatically,
+# eliminating the entire class of "root created files, node can't access them"
+# permission bugs.
+USER node
+
+# Copy lockfile first. Layer caching trick: if package.json/lock didn't
+# change, Docker reuses the cached "npm ci" layer below.
+COPY --chown=node:node package.json package-lock.json ./
+
+# Install ONLY production dependencies. --omit=dev skips devDependencies
+# (nodemon, eslint, vitest, etc.). Smaller image = smaller attack surface.
+# --ignore-scripts skips lifecycle hooks (prepare, postinstall, etc.).
+# Two reasons: (1) husky's prepare hook fails in a container with no git
+# repo, (2) postinstall scripts are a documented supply chain attack
+# vector — production builds should never run them.
+RUN npm ci --omit=dev --ignore-scripts
+
+# Copy only the server folder. We don't need src/, public/, tests/,
+# or anything else from the repo in the backend container.
+COPY --chown=node:node server ./server
+
+# Document that the container listens on 3001. Doesn't actually open it;
+# that happens in compose via the ports: mapping.
+EXPOSE 3001
+
+# Container-level liveness check. Docker re-runs this every 30s and marks the
+# container "unhealthy" after 3 consecutive failures. The frontend service in
+# docker-compose.yml uses `condition: service_healthy` to wait for this to pass
+# before starting nginx, eliminating the race where nginx forwards /api/* before
+# the backend has finished booting.
+# --start-period=10s gives Express time to bind the port before the first probe.
+# wget is preinstalled in node:20-alpine; -q silences output, -O- writes to stdout
+# so we don't litter the filesystem with response files.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:3001/health || exit 1
+
+# Start the server using exec form (JSON array). Exec form means node
+# runs as PID 1 and receives signals directly (SIGTERM on `docker stop`),
+# allowing graceful shutdown via the SIGTERM handler in server/index.js.
+# Shell form would wrap in /bin/sh and swallow signals.
+CMD ["node", "server/index.js"]

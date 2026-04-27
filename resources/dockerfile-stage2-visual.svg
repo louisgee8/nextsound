@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 720" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#16a34a"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#374151"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#dc2626"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="450" y="32" text-anchor="middle" font-size="22" font-weight="bold" fill="#111">Dockerfile Stage 2: The Runner</text>
+  <text x="450" y="56" text-anchor="middle" font-size="14" fill="#6b7280">Multi-stage build: only the artifact gets carried forward</text>
+
+  <!-- Stage 1 (faded, gets discarded) -->
+  <g opacity="0.55">
+    <rect x="40" y="100" width="320" height="290" rx="10" fill="#f9fafb" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6,4"/>
+    <text x="200" y="128" text-anchor="middle" font-size="16" font-weight="bold" fill="#374151">Stage 1: Builder</text>
+    <text x="200" y="148" text-anchor="middle" font-size="12" fill="#6b7280">FROM node:20-alpine AS builder</text>
+    <text x="200" y="166" text-anchor="middle" font-size="11" fill="#6b7280" font-style="italic">~1 GB. Discarded after build.</text>
+
+    <rect x="65" y="185" width="270" height="36" rx="4" fill="#fff" stroke="#cbd5e1"/>
+    <text x="200" y="208" text-anchor="middle" font-size="12" fill="#475569">node_modules (800+ packages)</text>
+
+    <rect x="65" y="230" width="270" height="36" rx="4" fill="#fff" stroke="#cbd5e1"/>
+    <text x="200" y="253" text-anchor="middle" font-size="12" fill="#475569">src/ (TypeScript source)</text>
+
+    <rect x="65" y="275" width="270" height="36" rx="4" fill="#fff" stroke="#cbd5e1"/>
+    <text x="200" y="298" text-anchor="middle" font-size="12" fill="#475569">TypeScript, Vite, ESLint binaries</text>
+
+    <rect x="65" y="320" width="270" height="55" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="200" y="345" text-anchor="middle" font-size="13" font-weight="bold" fill="#15803d">/app/dist</text>
+    <text x="200" y="362" text-anchor="middle" font-size="11" fill="#16a34a">The artifact we want to keep</text>
+  </g>
+
+  <!-- Copy arrow between stages -->
+  <path d="M 365 348 L 535 348" stroke="#16a34a" stroke-width="3" fill="none" marker-end="url(#arrow-green)"/>
+  <text x="450" y="328" text-anchor="middle" font-size="12" font-weight="bold" fill="#15803d">COPY --from=builder</text>
+  <text x="450" y="368" text-anchor="middle" font-size="11" fill="#15803d">/app/dist  →  /usr/share/nginx/html</text>
+
+  <!-- Stage 2 (vivid, what we ship) -->
+  <rect x="540" y="100" width="320" height="290" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="3"/>
+  <text x="700" y="128" text-anchor="middle" font-size="16" font-weight="bold" fill="#1e3a8a">Stage 2: Runner</text>
+  <text x="700" y="148" text-anchor="middle" font-size="12" fill="#1e40af">FROM nginx:1.27-alpine AS runner</text>
+  <text x="700" y="166" text-anchor="middle" font-size="11" fill="#1e40af" font-style="italic">~50 MB. This is what we ship.</text>
+
+  <rect x="565" y="185" width="270" height="48" rx="4" fill="#fff" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="700" y="208" text-anchor="middle" font-size="12" font-weight="bold" fill="#1e3a8a">nginx (web server)</text>
+  <text x="700" y="224" text-anchor="middle" font-size="10" fill="#475569">Pre-installed in the base image</text>
+
+  <rect x="565" y="243" width="270" height="62" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="700" y="266" text-anchor="middle" font-size="12" font-weight="bold" fill="#15803d">/usr/share/nginx/html</text>
+  <text x="700" y="284" text-anchor="middle" font-size="10" fill="#15803d">index.html, JS, CSS bundles</text>
+  <text x="700" y="298" text-anchor="middle" font-size="10" fill="#15803d">(received from Stage 1)</text>
+
+  <rect x="565" y="315" width="270" height="60" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="700" y="335" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">EXPOSE 80</text>
+  <text x="700" y="352" text-anchor="middle" font-size="10" fill="#92400e">Documentation only.</text>
+  <text x="700" y="366" text-anchor="middle" font-size="10" fill="#92400e">Does NOT actually open the port.</text>
+
+  <!-- Section divider -->
+  <line x1="60" y1="420" x2="840" y2="420" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="450" y="450" text-anchor="middle" font-size="16" font-weight="bold" fill="#111">Running the container with docker run</text>
+
+  <!-- Browser -->
+  <rect x="80" y="490" width="160" height="90" rx="8" fill="#fff" stroke="#475569" stroke-width="2"/>
+  <text x="160" y="525" text-anchor="middle" font-size="14" font-weight="bold" fill="#111">Your browser</text>
+  <text x="160" y="548" text-anchor="middle" font-size="12" fill="#475569">visits</text>
+  <text x="160" y="567" text-anchor="middle" font-size="12" fill="#0f766e" font-weight="bold">localhost:8080</text>
+
+  <path d="M 245 535 L 360 535" stroke="#374151" stroke-width="2" fill="none" marker-end="url(#arrow-gray)"/>
+  <text x="302" y="525" text-anchor="middle" font-size="11" fill="#374151">HTTP</text>
+
+  <!-- Host -->
+  <rect x="365" y="490" width="170" height="90" rx="8" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/>
+  <text x="450" y="525" text-anchor="middle" font-size="14" font-weight="bold" fill="#713f12">Host machine</text>
+  <text x="450" y="548" text-anchor="middle" font-size="12" fill="#713f12">listens on</text>
+  <text x="450" y="567" text-anchor="middle" font-size="12" fill="#0f766e" font-weight="bold">port 8080</text>
+
+  <path d="M 540 535 L 655 535" stroke="#dc2626" stroke-width="3" fill="none" marker-end="url(#arrow-red)"/>
+  <text x="597" y="525" text-anchor="middle" font-size="11" fill="#dc2626" font-weight="bold">-p 8080:80</text>
+
+  <!-- Container -->
+  <rect x="660" y="490" width="170" height="90" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="745" y="525" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e3a8a">Container</text>
+  <text x="745" y="548" text-anchor="middle" font-size="12" fill="#1e3a8a">nginx listens on</text>
+  <text x="745" y="567" text-anchor="middle" font-size="12" fill="#0f766e" font-weight="bold">port 80</text>
+
+  <!-- Command line -->
+  <rect x="180" y="615" width="540" height="40" rx="6" fill="#0f172a"/>
+  <text x="450" y="640" text-anchor="middle" font-size="13" font-family="ui-monospace, monospace" fill="#a5f3fc">$ docker run -p 8080:80 nextsound</text>
+
+  <text x="450" y="685" text-anchor="middle" font-size="11" fill="#6b7280" font-style="italic">Without -p, EXPOSE alone does nothing. The container is unreachable from your browser.</text>
+</svg>

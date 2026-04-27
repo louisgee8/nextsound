@@ -1,11 +1,11 @@
-import { NavLink } from "react-router-dom";
-import { INavLink } from "@/types";
-import { listItem, activeListItem } from "@/styles";
-import { cn } from "@/utils/helper";
+import { NavLink } from 'react-router-dom'
+import type { INavLink } from '@/types'
+import { listItem, activeListItem } from '@/styles'
+import { cn } from '@/utils/helper'
 
 interface SidebarNavItemProps {
-  link: INavLink;
-  closeSideBar: () => void;
+  link: INavLink
+  closeSideBar: () => void
 }
 
 const SidebarNavItem = ({ link, closeSideBar }: SidebarNavItemProps) => {
@@ -14,7 +14,7 @@ const SidebarNavItem = ({ link, closeSideBar }: SidebarNavItemProps) => {
       <NavLink
         to={link.path}
         className={({ isActive }) => {
-          return cn(listItem, isActive && activeListItem);
+          return cn(listItem, isActive && activeListItem)
         }}
         onClick={closeSideBar}
       >
@@ -22,7 +22,7 @@ const SidebarNavItem = ({ link, closeSideBar }: SidebarNavItemProps) => {
         <span>{link.title}</span>
       </NavLink>
     </li>
-  );
-};
+  )
+}
 
-export default SidebarNavItem;
+export default SidebarNavItem

@@ -1,175 +1,277 @@
-<div align="center" >
-  <br/>
+<div align="center">
   <br/>
   <img src="/src/assets/svg/nextsound.svg" alt="NextSound logo" width="80" height="auto" />
   <h1>NextSound</h1>
-  <br/>
+  <p>
+    A production-grade music discovery app built with React, TypeScript, and a CORS-safe Express proxy to the Spotify Web API.
+  </p>
 
-  <p >
-A music discovery app built with React and TypeScript. <br/> Browse tracks, albums, and artists using Spotify's API.
+  <p>
+    <img src="https://img.shields.io/badge/React-18-149ECA?logo=react&logoColor=white" alt="React 18" />
+    <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+    <img src="https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white" alt="Vite 7" />
+    <img src="https://img.shields.io/badge/RTK_Query-2-764ABC?logo=redux&logoColor=white" alt="Redux Toolkit" />
+    <img src="https://img.shields.io/badge/Tailwind-3-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind" />
+    <img src="https://img.shields.io/badge/Vitest-4-6E9F18?logo=vitest&logoColor=white" alt="Vitest" />
+    <img src="https://img.shields.io/badge/tests-51_passing-brightgreen" alt="Tests" />
   </p>
 </div>
 
-<br/>
-<br/>
+---
 
-## How it works
+## Table of contents
 
-NextSound runs in two modes depending on your setup:
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Tech stack](#tech-stack)
+- [Project structure](#project-structure)
+- [Getting started](#getting-started)
+- [Environment variables](#environment-variables)
+- [Available scripts](#available-scripts)
+- [Testing](#testing)
+- [How data flows (request lifecycle)](#how-data-flows-request-lifecycle)
+- [Runtime modes](#runtime-modes)
+- [Troubleshooting](#troubleshooting)
+- [Roadmap](#roadmap)
+- [Credits](#credits)
 
-### Demo mode (no API needed)
-Without API credentials:
-- Curated collection of 2024-2025 chart toppers
-- Works immediately after `git clone` and `npm install`
-- Real album artwork and track metadata
-- Features artists like Billie Eilish, Harry Styles, Morgan Wallen, and more
+---
 
-Benefits:
-- Perfect for trying out the app quickly
-- No API setup required
-- Images load from Spotify CDN
-- Shows off the full UI
+## Overview
 
-<br/>
+NextSound is a single-page React application for browsing, searching, and previewing music from the Spotify catalog. It ships with two runtime modes so it works for anyone who clones the repo:
 
+- **Demo mode** runs against curated mock data with real Spotify CDN artwork. No accounts, no keys.
+- **Live mode** runs against the Spotify Web API through a small Node/Express proxy that hides the client secret, caches access tokens, and applies sensible cache headers per endpoint.
 
-### With Spotify API (recommended)
-If you have Spotify API credentials:
-- Real-time access to Spotify's music catalog
-- Search across millions of tracks, albums, and artists
-- Latest trending songs and new releases
-- All features available
+The app is built with React 18, strict TypeScript, Vite, Tailwind, and Redux Toolkit's RTK Query. Testing is wired up with Vitest, React Testing Library, and Mock Service Worker.
 
-Requires:
-- Spotify API credentials in `.env` file
-- Backend server running for CORS handling
+## Features
 
-<br/>
+- **Music discovery** — Hero carousel and curated sections (e.g. Latest Hits) with track grids and album cards
+- **Command palette** — `⌘K` / `Ctrl+K` to search tracks, albums, artists, toggle theme, or jump to recent searches
+- **Live Spotify or demo** — Same UI works with a real Spotify app (client credentials flow) or with bundled mock data
+- **Backend proxy with token caching** — Express layer refreshes tokens with a 5-minute expiry buffer so the frontend never handles secrets
+- **Per-endpoint HTTP caching** — Cache-Control headers tuned by endpoint type (search: 5m, featured: 30m, entity lookups: 24h)
+- **Typed data layer** — RTK Query with a unified `musicApi` that switches between Spotify and mock sources at runtime
+- **Dark / light theme** — Persisted to `localStorage`, toggleable from sidebar or command palette
+- **Responsive layout** — Sidebar collapses to a mobile drawer; grids adapt to viewport
+- **Resilience** — Error boundary, loading skeletons, lazy-loaded routes, retry-aware API layer
+- **Tested** — Vitest + RTL + MSW with utility, service, store, and component test suites
 
+## Architecture
 
-The app automatically detects which mode to use.
+```mermaid
+flowchart LR
+    User([User])
+    subgraph Browser["Browser (Vite dev / static build)"]
+        UI["React 18 + TypeScript<br/>Pages, Components, Command Palette"]
+        RTK["Redux Toolkit<br/>RTK Query: musicApi + spotifyApi"]
+        UI <--> RTK
+    end
 
-<br/>
+    subgraph Backend["Express proxy :3001"]
+        Middleware["CORS + logging + JSON"]
+        TokenCache["Access token cache<br/>(5-min expiry buffer)"]
+        Proxy["/api/spotify/* handler<br/>cache-control, rate-limit passthrough"]
+        Middleware --> Proxy
+        Proxy <--> TokenCache
+    end
 
+    Spotify[("Spotify Web API<br/>api.spotify.com")]
+    Auth[("Spotify Accounts<br/>accounts.spotify.com/api/token")]
 
-## :camera: Screenshots
+    User --> UI
+    RTK -- "HTTP (fetch)" --> Middleware
+    Proxy -- "Bearer token" --> Spotify
+    TokenCache -- "Client credentials" --> Auth
+```
 
-### Hero Section 
-<kbd><img width="800" alt="NextSound Hero Section and Track Grid" src="./src/assets/images/hero.png"></kbd>
+At a glance:
 
-<br/>
+1. The React app dispatches RTK Query hooks from components.
+2. `musicApi` decides at request time whether to use Spotify or the mock dataset.
+3. Live requests hit the Express proxy, which attaches a cached bearer token and forwards to Spotify.
+4. Spotify responses come back with proxy-set `Cache-Control` headers so the browser and any CDN in front of it can cache appropriately.
 
-### Homepage
-<kbd><img width="800" alt="NextSound Homepage with Music Content" src="./src/assets/images/all-songs.png"></kbd>
+## Tech stack
 
+| Layer        | Tech                                                                       |
+| ------------ | -------------------------------------------------------------------------- |
+| UI           | React 18, React Router v6, Tailwind CSS 3, Radix UI, Framer Motion, Swiper |
+| Language     | TypeScript 4.9 (strict)                                                    |
+| Build        | Vite 7                                                                     |
+| State / data | Redux Toolkit 1.9, RTK Query                                               |
+| Backend      | Node.js + Express 5 (CORS proxy and token handler)                         |
+| Testing      | Vitest 4, React Testing Library, MSW 2, jsdom                              |
+| Tooling      | ESLint 9 (flat config), dotenv, concurrently, nodemon                      |
 
-<br/>
-<br/>
+## Project structure
+
+```
+nextsound/
+├── server/
+│   └── index.js              # Express Spotify proxy (CORS, token cache, rate-limit passthrough)
+├── src/
+│   ├── App.tsx               # Router, theme provider, layout shell
+│   ├── main.tsx              # Entry: Redux Provider + App mount
+│   ├── pages/                # Home, NotFound (code-split routes)
+│   ├── components/ui/        # Radix-based primitives (buttons, dialogs, etc.)
+│   ├── common/               # Shared layout pieces (Sidebar, Header, Footer, Error Boundary)
+│   ├── services/             # SpotifyAPI.ts, MusicAPI.ts, MCPAudioService.ts
+│   ├── store/                # Redux Toolkit store
+│   ├── hooks/                # Custom React hooks
+│   ├── context/              # Theme and UI context providers
+│   ├── utils/                # helper.ts, searchAlgorithm.ts, cn, error helpers
+│   ├── constants/            # Genre aliases, route configs
+│   ├── data/                 # Curated demo-mode dataset
+│   └── mocks/                # MSW handlers (used when VITE_USE_MSW=true)
+├── tests/
+│   ├── setup.ts              # MSW server, jsdom globals, DOM polyfills
+│   ├── utils/                # helper.test.ts, searchAlgorithm.test.ts
+│   ├── services/             # SpotifyAPI.test.ts, store.test.ts
+│   └── components/           # TrackCard.test.tsx
+├── resources/                # Architecture notes, improvement plan
+├── docs/                     # Additional documentation
+├── vite.config.ts
+├── vitest.config.ts
+└── tsconfig.json
+```
 
 ## Getting started
 
-You need Node.js 18+ and npm.
+**Prerequisites:** Node.js 18+ and npm.
 
 ```bash
-# Clone and install
-git clone https://github.com/natashaongiscoding/music-app.git
-cd music-app
+git clone <your-repo-url>
+cd nextsound
 npm install
-
-# Start the app
 npm run dev
 ```
 
-Open `http://localhost:5173` - the app works immediately with demo data.
+Open http://localhost:5173. The app boots in demo mode immediately, no credentials required.
 
-<br>
+### Running the full stack (live Spotify)
 
-### Want live Spotify data?
+1. Create an app at the [Spotify Developer Dashboard](https://developer.spotify.com/) and grab the **Client ID** and **Client Secret**.
+2. Copy the example env file:
 
-1. Create a [Spotify Developer Account](https://developer.spotify.com/) and create a new app
-2. Get your Client ID and Client Secret from the app dashboard
-3. Copy `.env.example` to `.env`:
    ```bash
    cp .env.example .env
    ```
-4. Add your credentials to `.env` (remove the # comments):
-   ```env
-   VITE_SPOTIFY_CLIENT_ID=your_client_id_here
-   VITE_SPOTIFY_CLIENT_SECRET=your_client_secret_here
-   ```
-5. Start with the backend:
+
+3. Fill in your credentials (see [Environment variables](#environment-variables)).
+4. Start frontend and proxy together:
+
    ```bash
    npm run dev:full
    ```
 
-<br/>
+   The frontend runs on `:5173`, the proxy on `:3001`, and you'll see colored logs from both.
+
+## Environment variables
+
+| Variable                     | Required  | Used by         | Description                                                               |
+| ---------------------------- | --------- | --------------- | ------------------------------------------------------------------------- |
+| `VITE_SPOTIFY_CLIENT_ID`     | Live mode | server + client | Spotify app client ID                                                     |
+| `VITE_SPOTIFY_CLIENT_SECRET` | Live mode | server          | Spotify app client secret. Never expose this to the browser               |
+| `VITE_USE_MSW`               | No        | client          | Set to `true` to intercept fetches with MSW handlers during dev           |
+| `FRONTEND_URL`               | No        | server          | Additional origin to allow via CORS (defaults to `http://localhost:5173`) |
+| `PORT`                       | No        | server          | Proxy port (defaults to `3001`)                                           |
+
+> In demo mode, none of the above are required. The app detects missing credentials and falls back to the mock dataset.
+
+## Available scripts
+
+| Script                  | What it does                                            |
+| ----------------------- | ------------------------------------------------------- |
+| `npm run dev`           | Start the Vite dev server only (demo mode friendly)     |
+| `npm run dev:full`      | Start Express proxy and Vite together with colored logs |
+| `npm run server:dev`    | Start the Express proxy under `nodemon`                 |
+| `npm run server`        | Start the Express proxy once (no watch)                 |
+| `npm run build`         | Type-check with `tsc`, then build the client with Vite  |
+| `npm run preview`       | Preview the production build locally                    |
+| `npm run start`         | Run the built frontend alongside the server             |
+| `npm run test`          | Run the Vitest suite once (CI mode)                     |
+| `npm run test:watch`    | Run Vitest in watch mode                                |
+| `npm run test:ui`       | Open the Vitest browser UI                              |
+| `npm run test:coverage` | Run Vitest with V8 coverage reporting                   |
 
 ## Testing
 
-```bash
-# Run tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-```
-
-<br/>
-
-## Build
+NextSound ships with a full test pipeline: Vitest (runner), React Testing Library (component assertions), jsdom (DOM), and MSW (HTTP mocking).
 
 ```bash
-npm run build
-npm run preview
+npm run test            # one-shot
+npm run test:watch      # local dev
+npm run test:coverage   # coverage report in coverage/
 ```
 
-<br/>
+Current state:
 
-## Tech Stack
+- **51 tests passing** across 5 suites
+- ~12% line coverage as of the initial testing pass (threshold is enforced at 10% to protect against regressions while coverage ramps up)
+- Suites live in `tests/` mirroring `src/`
 
-- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS
-- **State:** Redux Toolkit with RTK Query
-- **Routing:** React Router v6
-- **Animations:** Framer Motion
-- **Backend:** Node.js, Express.js (CORS proxy)
-- **API:** Spotify Web API
-- **Testing:** Vitest, Playwright
+Coverage thresholds live in `vitest.config.ts` and will ratchet up as more components and services get covered in later phases.
 
-<br>
+## How data flows (request lifecycle)
+
+```mermaid
+sequenceDiagram
+    participant C as Component
+    participant R as RTK Query (musicApi)
+    participant P as Express proxy
+    participant S as Spotify API
+
+    C->>R: useGetTracksQuery(args)
+    alt credentials missing
+        R-->>C: mock dataset (demo mode)
+    else credentials present
+        R->>P: GET /api/spotify/tracks/...
+        P->>P: getSpotifyToken() (cache hit or refresh)
+        P->>S: GET /v1/tracks/... + Bearer <token>
+        S-->>P: JSON
+        P-->>R: JSON + Cache-Control
+        R-->>C: normalized data
+    end
+```
+
+## Runtime modes
+
+**Demo mode** — No keys. Curated tracks from 2024-2025 with real Spotify artwork served off Spotify's CDN. Every feature works except live search and new releases.
+
+**Live mode** — Adds real search, new releases, and full catalog browsing. Requires the Express proxy to be running because Spotify's Web API rejects direct browser calls on CORS grounds.
+
+The app picks a mode at startup based on whether the client sees credentials and whether the proxy responds.
 
 ## Troubleshooting
 
-### Common Issues
+**CORS errors against Spotify**
+Run the proxy (`npm run dev:full` or `npm run server:dev`). Spotify's Web API does not accept CORS preflight from browsers.
 
-**CORS Errors with Spotify API**
-- **Problem:** API requests fail due to CORS restrictions
-- **Solution:** Ensure the backend server is running (`npm run dev:full` or `npm run server:dev`)
-- **Details:** Spotify Web API cannot be called directly from browsers due to CORS policy
+**"No music data available" in live mode**
+Check that `.env` contains valid `VITE_SPOTIFY_CLIENT_ID` and `VITE_SPOTIFY_CLIENT_SECRET`, and that the proxy is reachable on `:3001`. Hitting `http://localhost:3001/health` should return `status: ok`.
 
-**Missing Environment Variables**
-- **Problem:** App shows "No music data available" or API errors
-- **Solution:** Check that `.env` file exists with valid Spotify credentials
-- **Reference:** See `SPOTIFY_SETUP.md` for obtaining API credentials
+**Port conflicts**
+Frontend expects `:5173`, backend expects `:3001`. Override the backend with `PORT=4001 npm run server`. For the frontend, pass `--port` to Vite or add it to `vite.config.ts`.
 
-**Port Conflicts**
-- **Frontend (Port 5173):** Check if another Vite/dev server is running
-- **Backend (Port 3001):** Check if another Express server is using the port
-- **Solution:** Kill existing processes or modify port configuration
+**TypeScript errors on build**
+`npm run build` runs `tsc` before Vite. Errors there are real type errors, not Vite issues. `npm install` first if you haven't synced dependencies.
 
-**Build/TypeScript Errors**
-- **Problem:** TypeScript compilation errors during build
-- **Solution:** Run `npm run build` to see specific error details
-- **Common fix:** Ensure all dependencies are installed (`npm install`)
+## Roadmap
 
-<br/>
+This project is being upgraded to production-grade deployed status. Tracked in detail in `resources/IMPROVEMENT_PLAN.md` and the companion Notion tracker.
 
-### Getting Help
-- See `SPOTIFY_SETUP.md` for API setup guidance
-- [Reach out to the NextWork community to ask your question!](https://community.nextwork.org/c/i-have-a-question/)
+- [x] Phase 1 — Foundation (testing, README, linting)
+- [ ] Phase 2 — DevOps layer (Dockerfile, docker-compose, GitHub Actions CI/CD)
+- [ ] Phase 3 — Feature upgrades (observability, analytics, auth)
+- [ ] Phase 4 — Deployment (AWS ECS or equivalent, Terraform)
+- [ ] Phase 5 — Polish (performance budget, a11y audit, release automation)
 
----
+## Credits
 
-<div align="center">
-  <p>Built with ❤️ for music lovers everywhere</p>
-  <p>Discover your next favorite track with NextSound</p>
-</div>
+Originally scaffolded as part of a NextWork learning project. Upgrades and the DevOps / deployment path are part of an ongoing portfolio build-out.
+
+Built with attention for music lovers.

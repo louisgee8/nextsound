@@ -1,27 +1,20 @@
-import { memo } from 'react';
-import { m } from "framer-motion";
+import { memo } from 'react'
+import { m } from 'framer-motion'
 
-import { Poster } from "@/common";
-import { mainHeading, maxWidth, paragraph, watchBtn } from "@/styles";
-import { ITrack } from "@/types";
-import { cn } from "@/utils/helper";
-import { useMotion } from "@/hooks/useMotion";
+import { Poster } from '@/common'
+import { mainHeading, maxWidth, paragraph } from '@/styles'
+import type { ITrack } from '@/types'
+import { cn } from '@/utils/helper'
+import { useMotion } from '@/hooks/useMotion'
 
 const HeroSlide = ({ track }: { track: ITrack }) => {
-  const { fadeDown, staggerContainer } = useMotion();
+  const { fadeDown, staggerContainer } = useMotion()
 
-  const {
-    overview,
-    original_title: title,
-    poster_path: posterPath,
-  } = track;
+  const { overview, original_title: title, poster_path: posterPath } = track
 
   return (
     <div
-      className={cn(
-        maxWidth,
-        ` mx-auto flex items-center h-full  flex-row lg:gap-32 sm:gap-20`
-      )}
+      className={cn(maxWidth, ` mx-auto flex items-center h-full  flex-row lg:gap-32 sm:gap-20`)}
     >
       <m.div
         variants={staggerContainer(0.2, 0.3)}
@@ -39,7 +32,7 @@ const HeroSlide = ({ track }: { track: ITrack }) => {
 
       <Poster title={title} posterPath={posterPath} className="mr-auto" />
     </div>
-  );
-};
+  )
+}
 
-export default memo(HeroSlide);
+export default memo(HeroSlide)

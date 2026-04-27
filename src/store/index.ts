@@ -1,6 +1,6 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { spotifyApi } from '@/services/SpotifyAPI';
-import { musicApi } from '@/services/MusicAPI';
+import { configureStore } from '@reduxjs/toolkit'
+import { spotifyApi } from '@/services/SpotifyAPI'
+import { musicApi } from '@/services/MusicAPI'
 
 export const store = configureStore({
   reducer: {
@@ -10,11 +10,8 @@ export const store = configureStore({
     [musicApi.reducerPath]: musicApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(
-      spotifyApi.middleware,
-      musicApi.middleware
-    ),
-});
+    getDefaultMiddleware().concat(spotifyApi.middleware, musicApi.middleware),
+})
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch

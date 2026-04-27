@@ -1,23 +1,23 @@
-import { ITrack } from '@/types';
+import type { ITrack } from '@/types'
 
 /**
  * Genre aliases for flexible genre-based search
  * Maps common genre search terms to their variations
  */
 export const GENRE_ALIASES: Record<string, string[]> = {
-  'pop': ['pop', 'alternative pop', 'dance pop', 'synthpop'],
-  'rock': ['rock', 'pop rock', 'alternative rock', 'classic rock'],
+  pop: ['pop', 'alternative pop', 'dance pop', 'synthpop'],
+  rock: ['rock', 'pop rock', 'alternative rock', 'classic rock'],
   'hip hop': ['hip hop', 'hip-hop', 'rap', 'latin trap'],
   'r&b': ['r&b', 'rnb', 'soul'],
-  'electronic': ['electronic', 'dance', 'edm', 'synthpop'],
-  'country': ['country'],
-  'indie': ['indie', 'indie folk', 'indie rock'],
-  'folk': ['folk', 'indie folk'],
-  'punk': ['punk', 'pop punk'],
-  'garage': ['garage', 'uk garage'],
+  electronic: ['electronic', 'dance', 'edm', 'synthpop'],
+  country: ['country'],
+  indie: ['indie', 'indie folk', 'indie rock'],
+  folk: ['folk', 'indie folk'],
+  punk: ['punk', 'pop punk'],
+  garage: ['garage', 'uk garage'],
   'k-pop': ['k-pop', 'kpop'],
-  'latin': ['latin', 'latin trap']
-};
+  latin: ['latin', 'latin trap'],
+}
 
 /**
  * Scoring weights for search algorithm
@@ -38,14 +38,14 @@ const SCORING_WEIGHTS = {
   PARTIAL_YEAR: 25,
   PARTIAL_WORD_BONUS: 20,
   PARTIAL_OVERVIEW: 15,
-  POPULARITY_HIGH: 10,  // >85 popularity
-  POPULARITY_VERY_HIGH: 5   // >90 popularity
-};
+  POPULARITY_HIGH: 10, // >85 popularity
+  POPULARITY_VERY_HIGH: 5, // >90 popularity
+}
 
 export interface SearchResult {
-  track: ITrack;
-  score: number;
-  isExactMatch: boolean;
+  track: ITrack
+  score: number
+  isExactMatch: boolean
 }
 
 /**
@@ -66,22 +66,22 @@ export interface SearchResult {
 export function performEnhancedSearch(
   tracks: ITrack[],
   searchQuery: string,
-  limit?: number
+  limit?: number,
 ): SearchResult[] {
-  if (!searchQuery || !tracks.length) return [];
+  if (!searchQuery || !tracks.length) return []
 
-  const query = searchQuery.toLowerCase().trim();
-  const searchTerms = query.split(/\s+/).filter(term => term.length > 0);
+  const query = searchQuery.toLowerCase().trim()
+  const searchTerms = query.split(/\s+/).filter((term) => term.length > 0)
 
   // Check if search is year-based
-  const yearMatch = query.match(/\b(19|20)\d{2}\b/);
-  const searchYear = yearMatch ? parseInt(yearMatch[0]) : null;
+  const yearMatch = query.match(/\b(19|20)\d{2}\b/)
+  const searchYear = yearMatch ? parseInt(yearMatch[0]) : null
 
-  const scoredResults: SearchResult[] = [];
+  const scoredResults: SearchResult[] = []
 
-  tracks.forEach(track => {
-    let score = 0;
-    let isExactMatch = false;
+  tracks.forEach((track) => {
+    let score = 0
+    let isExactMatch = false
 
     const trackText = {
       name: track.name?.toLowerCase() || '',
@@ -91,108 +91,112 @@ export function performEnhancedSearch(
       album: track.album?.toLowerCase() || '',
       overview: track.overview?.toLowerCase() || '',
       genre: track.genre?.toLowerCase() || '',
-      year: track.year?.toString() || ''
-    };
+      year: track.year?.toString() || '',
+    }
 
     // === EXACT MATCH DETECTION (Highest Priority) ===
-    if (trackText.name === query || trackText.title === query || trackText.original_title === query) {
-      isExactMatch = true;
-      score += SCORING_WEIGHTS.EXACT_MATCH_NAME;
+    if (
+      trackText.name === query ||
+      trackText.title === query ||
+      trackText.original_title === query
+    ) {
+      isExactMatch = true
+      score += SCORING_WEIGHTS.EXACT_MATCH_NAME
     } else if (trackText.artist === query) {
-      isExactMatch = true;
-      score += SCORING_WEIGHTS.EXACT_MATCH_ARTIST;
+      isExactMatch = true
+      score += SCORING_WEIGHTS.EXACT_MATCH_ARTIST
     } else if (trackText.album === query) {
-      isExactMatch = true;
-      score += SCORING_WEIGHTS.EXACT_MATCH_ALBUM;
+      isExactMatch = true
+      score += SCORING_WEIGHTS.EXACT_MATCH_ALBUM
     } else if (trackText.genre === query) {
-      isExactMatch = true;
-      score += SCORING_WEIGHTS.EXACT_MATCH_GENRE;
+      isExactMatch = true
+      score += SCORING_WEIGHTS.EXACT_MATCH_GENRE
     }
 
     // === YEAR-BASED SEARCH ===
     if (searchYear && track.year === searchYear) {
-      score += SCORING_WEIGHTS.YEAR_MATCH;
+      score += SCORING_WEIGHTS.YEAR_MATCH
     }
 
     // === GENRE-BASED SEARCH with aliases ===
     for (const [searchGenre, aliases] of Object.entries(GENRE_ALIASES)) {
       if (query.includes(searchGenre)) {
-        if (aliases.some(alias => trackText.genre.includes(alias))) {
-          score += SCORING_WEIGHTS.GENRE_ALIAS_MATCH;
-          break;
+        if (aliases.some((alias) => trackText.genre.includes(alias))) {
+          score += SCORING_WEIGHTS.GENRE_ALIAS_MATCH
+          break
         }
       }
     }
 
     // === MULTI-TERM SEARCH SCORING (only for non-exact matches) ===
     if (!isExactMatch) {
-      searchTerms.forEach(term => {
+      searchTerms.forEach((term) => {
         // Title/Name matches
         if (trackText.name.includes(term) || trackText.title.includes(term)) {
-          score += SCORING_WEIGHTS.PARTIAL_NAME;
+          score += SCORING_WEIGHTS.PARTIAL_NAME
         }
         if (trackText.original_title.includes(term)) {
-          score += SCORING_WEIGHTS.PARTIAL_ORIGINAL_TITLE;
+          score += SCORING_WEIGHTS.PARTIAL_ORIGINAL_TITLE
         }
 
         // Artist matches
         if (trackText.artist.includes(term)) {
-          score += SCORING_WEIGHTS.PARTIAL_ARTIST;
+          score += SCORING_WEIGHTS.PARTIAL_ARTIST
         }
 
         // Album matches
         if (trackText.album.includes(term)) {
-          score += SCORING_WEIGHTS.PARTIAL_ALBUM;
+          score += SCORING_WEIGHTS.PARTIAL_ALBUM
         }
 
         // Genre matches
         if (trackText.genre.includes(term)) {
-          score += SCORING_WEIGHTS.PARTIAL_GENRE;
+          score += SCORING_WEIGHTS.PARTIAL_GENRE
         }
 
         // Overview matches
         if (trackText.overview.includes(term)) {
-          score += SCORING_WEIGHTS.PARTIAL_OVERVIEW;
+          score += SCORING_WEIGHTS.PARTIAL_OVERVIEW
         }
 
         // Year matches
         if (trackText.year.includes(term)) {
-          score += SCORING_WEIGHTS.PARTIAL_YEAR;
+          score += SCORING_WEIGHTS.PARTIAL_YEAR
         }
-      });
+      })
 
       // === PARTIAL WORD MATCHING BONUS ===
-      searchTerms.forEach(term => {
+      searchTerms.forEach((term) => {
         if (term.length >= 3) {
           if (trackText.name.includes(term) || trackText.artist.includes(term)) {
-            score += SCORING_WEIGHTS.PARTIAL_WORD_BONUS;
+            score += SCORING_WEIGHTS.PARTIAL_WORD_BONUS
           }
         }
-      });
+      })
 
       // === POPULARITY BOOST for better UX ===
       if (track.popularity && track.popularity > 85) {
-        score += SCORING_WEIGHTS.POPULARITY_HIGH;
+        score += SCORING_WEIGHTS.POPULARITY_HIGH
       }
       if (track.popularity && track.popularity > 90) {
-        score += SCORING_WEIGHTS.POPULARITY_VERY_HIGH;
+        score += SCORING_WEIGHTS.POPULARITY_VERY_HIGH
       }
     }
 
     if (score > 0) {
-      scoredResults.push({ track, score, isExactMatch });
+      scoredResults.push({ track, score, isExactMatch })
     }
-  });
+  })
 
   // Sort by exact match first, then by score (descending)
   const sortedResults = scoredResults.sort((a, b) => {
     // Exact matches first
-    if (a.isExactMatch && !b.isExactMatch) return -1;
-    if (!a.isExactMatch && b.isExactMatch) return 1;
+    if (a.isExactMatch && !b.isExactMatch) return -1
+    if (!a.isExactMatch && b.isExactMatch) return 1
     // Then by score
-    return b.score - a.score;
-  });
+    return b.score - a.score
+  })
 
   // Apply limit if specified
-  return limit ? sortedResults.slice(0, limit) : sortedResults;
+  return limit ? sortedResults.slice(0, limit) : sortedResults
 }

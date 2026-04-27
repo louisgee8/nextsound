@@ -1,40 +1,39 @@
-import { memo, FC, useRef, useState, useEffect } from "react";
-import { useInView } from "framer-motion";
+import type { FC } from 'react'
+import { memo, useRef, useState, useEffect } from 'react'
+import { useInView } from 'framer-motion'
 
-import MusicSlides from "./MusicSlides";
-import MusicGrid from "./MusicGrid";
-import { SkelatonLoader } from "../Loader";
-import Error from "../Error";
-import ErrorBoundary, { APIErrorBoundary } from "../ErrorBoundary";
+import MusicSlides from './MusicSlides'
+import MusicGrid from './MusicGrid'
+import { SkelatonLoader } from '../Loader'
+import Error from '../Error'
+import ErrorBoundary, { APIErrorBoundary } from '../ErrorBoundary'
 
-import { useGetTracksQuery } from "@/services/MusicAPI";
-import { cn, getErrorMessage } from "@/utils/helper";
-import { ITrack } from "@/types";
+import { useGetTracksQuery } from '@/services/MusicAPI'
+import { cn, getErrorMessage } from '@/utils/helper'
+import type { ITrack } from '@/types'
 
 interface SectionProps {
-  title: string;
-  category: string;
-  className?: string;
-  type?: string;
-  id?: number;
-  showSimilarTracks?: boolean;
+  title: string
+  category: string
+  className?: string
+  type?: string
+  id?: number
+  showSimilarTracks?: boolean
 }
 
-const Section: FC<SectionProps> = ({
-  title,
-  category,
-  className,
-  type,
-  id,
-  showSimilarTracks,
-}) => {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [allTracks, setAllTracks] = useState<ITrack[]>([]);
+const Section: FC<SectionProps> = ({ title, category, className, type, id, showSimilarTracks }) => {
+  const ref = useRef<HTMLDivElement | null>(null)
+  const [allTracks, setAllTracks] = useState<ITrack[]>([])
 
+  // Lazy-load via IntersectionObserver was premature optimization — with only one
+  // section on the home page it sometimes never fires inView=true, leaving the grid
+  // permanently empty. Force-load instead. If we add many sections later, reintroduce
+  // the lazy gate with a fallback timer that loads after N seconds regardless.
   const inView = useInView(ref, {
-    margin: "420px",
+    margin: '420px',
     once: true,
-  });
+  })
+  void inView // keep observer wired for future use, just don't gate on it
 
   const {
     data = { results: [] },
@@ -51,42 +50,44 @@ const Section: FC<SectionProps> = ({
       cacheKey: `${title}-1`,
     },
     {
-      skip: !inView,
-    }
-  );
+      skip: false,
+    },
+  )
 
   // Handle data when it arrives
   useEffect(() => {
     if (data?.results && data.results.length > 0) {
-      setAllTracks(data.results);
+      setAllTracks(data.results)
     }
-  }, [data]);
+  }, [data])
 
+  const errorMessage = isError ? getErrorMessage(error) : ''
 
-  const errorMessage = isError ? getErrorMessage(error) : "";
-
-  const sectionStyle = cn(
-    `sm:py-[20px] xs:py-[18.75px] py-[16.75px] font-nunito`,
-    className
-  );
+  const sectionStyle = cn(`sm:py-[20px] xs:py-[18.75px] py-[16.75px] font-nunito`, className)
 
   return (
     <ErrorBoundary>
       <section className={sectionStyle} ref={ref}>
         <div className="flex flex-row justify-between items-center mb-[22.75px]">
           <div className=" relative">
-            <h3 className="sm:text-[22.25px] xs:text-[20px] text-[18.75px] dark:text-gray-50 sm:font-bold font-semibold">{title}</h3>
+            <h3 className="sm:text-[22.25px] xs:text-[20px] text-[18.75px] dark:text-gray-50 sm:font-bold font-semibold">
+              {title}
+            </h3>
             <div className="line" />
           </div>
         </div>
-        <div className={title === "Latest Hits" ? "min-h-[400px]" : "sm:h-[312px] xs:h-[309px] h-[266px]"}>
+        <div
+          className={
+            title === 'Latest Hits' ? 'min-h-[400px]' : 'sm:h-[312px] xs:h-[309px] h-[266px]'
+          }
+        >
           {isLoading ? (
             <SkelatonLoader />
           ) : isError ? (
             <Error error={String(errorMessage)} className="h-full text-[18px]" />
           ) : (
             <APIErrorBoundary>
-              {title === "Latest Hits" ? (
+              {title === 'Latest Hits' ? (
                 <MusicGrid
                   tracks={allTracks}
                   category={category}
@@ -94,17 +95,14 @@ const Section: FC<SectionProps> = ({
                   loadMoreCount={6}
                 />
               ) : (
-                <MusicSlides
-                  tracks={data.results}
-                  category={category}
-                />
+                <MusicSlides tracks={data.results} category={category} />
               )}
             </APIErrorBoundary>
           )}
         </div>
       </section>
     </ErrorBoundary>
-  );
-};
+  )
+}
 
-export default memo(Section);
+export default memo(Section)

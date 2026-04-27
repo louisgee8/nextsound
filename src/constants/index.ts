@@ -1,33 +1,32 @@
-import { FiSun } from "react-icons/fi";
-import { BsMoonStarsFill } from "react-icons/bs";
-import { AiOutlineHome } from "react-icons/ai";
+import { FiSun } from 'react-icons/fi'
+import { BsMoonStarsFill } from 'react-icons/bs'
+import { AiOutlineHome } from 'react-icons/ai'
 
-import { ITheme, INavLink } from "../types";
+import type { ITheme, INavLink } from '../types'
 
 export const navLinks: INavLink[] = [
   {
-    title: "home",
-    path: "/",
+    title: 'home',
+    path: '/',
     icon: AiOutlineHome,
   },
-];
+]
 
 export const themeOptions: ITheme[] = [
   {
-    title: "Dark",
+    title: 'Dark',
     icon: BsMoonStarsFill,
   },
   {
-    title: "Light",
+    title: 'Light',
     icon: FiSun,
   },
-];
-
+]
 
 export const sections = [
   {
-    title: "Latest Hits",
-    category: "tracks",
-    type: "latest",
+    title: 'Latest Hits',
+    category: 'tracks',
+    type: 'latest',
   },
-];
+]

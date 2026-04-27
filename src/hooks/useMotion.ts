@@ -1,12 +1,12 @@
-import { useReducedMotion } from "framer-motion";
-import { useCallback, useMemo } from "react";
-import { useMediaQuery } from "usehooks-ts";
+import { useReducedMotion } from 'framer-motion'
+import { useCallback, useMemo } from 'react'
+import { useMediaQuery } from 'usehooks-ts'
 
 export const useMotion = () => {
-  const isMiniScreen = useMediaQuery("(max-width: 768px)");
-  const shouldReduceMotion = useReducedMotion();
+  const isMiniScreen = useMediaQuery('(max-width: 768px)')
+  const shouldReduceMotion = useReducedMotion()
 
-  const isMotionDisabled = shouldReduceMotion || isMiniScreen;
+  const isMotionDisabled = shouldReduceMotion || isMiniScreen
 
   const zoomIn = useCallback(
     (scale: number, duration: number) =>
@@ -18,20 +18,20 @@ export const useMotion = () => {
               transform: `scale(${scale})`,
               transition: {
                 duration,
-                ease: "easeInOut",
+                ease: 'easeInOut',
               },
             },
             show: {
               opacity: 1,
-              transform: "scale(1)",
+              transform: 'scale(1)',
               transition: {
                 duration,
-                ease: "easeInOut",
+                ease: 'easeInOut',
               },
             },
           },
-    [isMotionDisabled]
-  );
+    [isMotionDisabled],
+  )
 
   const staggerContainer = useCallback(
     (staggerChildren: number, delayChildren: number) =>
@@ -49,8 +49,8 @@ export const useMotion = () => {
               },
             },
           },
-    [isMotionDisabled]
-  );
+    [isMotionDisabled],
+  )
 
   const fadeDown = useMemo(
     () =>
@@ -58,24 +58,24 @@ export const useMotion = () => {
         ? undefined
         : {
             hidden: {
-              transform: "translate(0, -25px)",
+              transform: 'translate(0, -25px)',
               opacity: 0,
             },
             show: {
-              transform: "translate(0, 0)",
+              transform: 'translate(0, 0)',
               opacity: 1,
               transition: {
                 duration: 0.5,
-                ease: "easeOut",
-                type: "tween",
+                ease: 'easeOut',
+                type: 'tween',
                 opacity: {
                   duration: 0.625,
                 },
               },
             },
           },
-    [isMotionDisabled]
-  );
+    [isMotionDisabled],
+  )
 
   const fadeUp = useMemo(
     () =>
@@ -83,21 +83,21 @@ export const useMotion = () => {
         ? undefined
         : {
             hidden: {
-              transform: "translate(50px, 50px)",
+              transform: 'translate(50px, 50px)',
               opacity: 0,
             },
             show: {
-              transform: "translate(0, 0)",
+              transform: 'translate(0, 0)',
               opacity: 1,
               transition: {
                 duration: 0.4,
-                ease: "easeOut",
-                type: "tween",
+                ease: 'easeOut',
+                type: 'tween',
               },
             },
           },
-    [isMotionDisabled]
-  );
+    [isMotionDisabled],
+  )
 
   const slideIn = useCallback(
     (direction: string, type: string, delay: number, duration: number) =>
@@ -107,37 +107,26 @@ export const useMotion = () => {
             hidden: {
               transform:
                 `translate(${
-                  direction === "left"
-                    ? "-100%"
-                    : direction === "right"
-                    ? "100%"
-                    : "0"
-                }, ` +
-                `${
-                  direction === "up"
-                    ? "-100%"
-                    : direction === "down"
-                    ? "100%"
-                    : "0"
-                })`,
+                  direction === 'left' ? '-100%' : direction === 'right' ? '100%' : '0'
+                }, ` + `${direction === 'up' ? '-100%' : direction === 'down' ? '100%' : '0'})`,
 
               transition: {
                 duration,
-                ease: "easeInOut",
+                ease: 'easeInOut',
               },
             },
             show: {
-              transform: "translate(0, 0)",
+              transform: 'translate(0, 0)',
               transition: {
                 type,
                 delay,
                 duration,
-                ease: "easeInOut",
+                ease: 'easeInOut',
               },
             },
           },
-    [isMotionDisabled]
-  );
+    [isMotionDisabled],
+  )
 
   return {
     zoomIn,
@@ -145,5 +134,5 @@ export const useMotion = () => {
     fadeUp,
     staggerContainer,
     slideIn,
-  };
-};
+  }
+}
