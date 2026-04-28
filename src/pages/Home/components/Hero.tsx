@@ -23,22 +23,19 @@ const Hero = ({ tracks }: { tracks: ITrack[] }) => {
       }}
       modules={[Autoplay]}
     >
-      {tracks.map((track) => {
-        return (
-          <SwiperSlide
-            key={track.id}
-            style={{
-              backgroundImage: `
-              linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.5)),url('${getImageUrl(track.backdrop_path)}'`,
-              backgroundPosition: 'center',
-              backgroundSize: 'cover',
-            }}
-            className=" h-full w-full will-change-transform motion-reduce:transform-none"
-          >
-            {({ isActive }) => (isActive ? <HeroSlide track={track} /> : null)}
-          </SwiperSlide>
-        )
-      })}
+      {tracks.map((track) => (
+        <SwiperSlide
+          key={track.id}
+          style={{
+            backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.5)), url('${getImageUrl(track.backdrop_path)}')`,
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+          }}
+          className="h-full w-full will-change-transform motion-reduce:transform-none"
+        >
+          <HeroSlide track={track} />
+        </SwiperSlide>
+      ))}
     </Swiper>
   )
 }
