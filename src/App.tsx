@@ -11,6 +11,8 @@ import {
   DemoModeBadge,
 } from '@/common'
 import { CommandPalette } from '@/components/ui/CommandPalette'
+import { MiniPlayerContainer } from '@/components/ui/MiniPlayerContainer'
+import { QueuePanel } from '@/components/ui/QueuePanel'
 
 import 'react-loading-skeleton/dist/skeleton.css'
 import 'swiper/css'
@@ -61,6 +63,12 @@ const App = () => {
           // Item selection handled by CommandPalette component
         }}
       />
+
+      {/* Audio player bar — fixed-position, always present, hides when no track */}
+      <MiniPlayerContainer />
+
+      {/* Queue drawer — overlays everything when isQueueVisible is true */}
+      <QueuePanel />
 
       <Footer />
     </>

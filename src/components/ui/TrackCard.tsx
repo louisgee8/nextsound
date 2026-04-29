@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { Card, CardContent } from './card'
 import { FaClock } from 'react-icons/fa'
+import { FiPlus, FiCheck } from 'react-icons/fi'
 import type { ITrack } from '@/types'
 import { getImageUrl, cn } from '@/utils'
+import { useAudioPlayerContext } from '@/context/audioPlayerContext'
 
 interface TrackCardProps {
   track: ITrack
@@ -23,6 +25,24 @@ export const TrackCard: React.FC<TrackCardProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [justQueued, setJustQueued] = useState(false)
+
+  // Audio context: clicking the card plays the track; the + button queues it.
+  const { playTrack, addToQueue, queue } = useAudioPlayerContext()
+  const isInQueue = queue.some((q) => q.id === track.id)
+
+  const handleCardClick = () => {
+    playTrack(track)
+  }
+
+  const handleQueueClick = (e: React.MouseEvent) => {
+    // Stop propagation so the card's playTrack doesn't ALSO fire.
+    e.stopPropagation()
+    if (isInQueue) return
+    addToQueue(track)
+    setJustQueued(true)
+    setTimeout(() => setJustQueued(false), 1500)
+  }
 
   const { poster_path, original_title: title, name, artist, album, duration } = track
   const displayTitle = title || name || 'Unknown Track'
@@ -51,6 +71,16 @@ export const TrackCard: React.FC<TrackCardProps> = ({
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handleCardClick()
+        }
+      }}
+      aria-label={`Play ${track.original_title || track.name || 'track'}`}
     >
       {/* Main Content */}
       <div className="block relative h-full">
@@ -87,6 +117,30 @@ export const TrackCard: React.FC<TrackCardProps> = ({
               isHovered ? 'opacity-100' : 'opacity-0',
             )}
           />
+
+          {/* Add-to-queue button (hover-revealed, top-right) */}
+          <button
+            type="button"
+            onClick={handleQueueClick}
+            disabled={isInQueue}
+            aria-label={isInQueue ? 'Already in queue' : 'Add to queue'}
+            className={cn(
+              'absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center',
+              'transition-all duration-200',
+              'shadow-md backdrop-blur-sm',
+              isInQueue || justQueued
+                ? 'bg-green-500 text-white opacity-100'
+                : 'bg-white/90 dark:bg-gray-900/90 text-gray-700 dark:text-gray-200 hover:bg-white hover:scale-110',
+              isHovered || isInQueue || justQueued ? 'opacity-100' : 'opacity-0',
+              isInQueue && 'cursor-default',
+            )}
+          >
+            {isInQueue || justQueued ? (
+              <FiCheck className="w-4 h-4" />
+            ) : (
+              <FiPlus className="w-4 h-4" />
+            )}
+          </button>
         </div>
 
         {/* Track information */}

@@ -10,6 +10,7 @@ import {
   FiShuffle,
   FiRepeat,
   FiHeart,
+  FiList,
   FiMoreHorizontal,
   FiMinimize2,
   FiMaximize2,
@@ -35,6 +36,8 @@ interface MiniPlayerProps {
   onClose?: () => void
   isMinimized?: boolean
   onToggleMinimize?: () => void
+  onToggleQueue?: () => void
+  queueCount?: number
   className?: string
 }
 
@@ -55,6 +58,8 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
   onToggleFavorite,
   isMinimized = false,
   onToggleMinimize,
+  onToggleQueue,
+  queueCount = 0,
   className,
 }) => {
   const [isMuted, setIsMuted] = useState(false)
@@ -329,6 +334,22 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
               </div>
             )}
           </div>
+
+          {/* Queue toggle */}
+          <Button
+            onClick={onToggleQueue}
+            variant="ghost"
+            size="icon"
+            aria-label="Toggle queue"
+            className="relative flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors duration-200"
+          >
+            <FiList className="w-4 h-4" />
+            {queueCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-blue-600 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
+                {queueCount}
+              </span>
+            )}
+          </Button>
 
           {/* More options */}
           <Button
