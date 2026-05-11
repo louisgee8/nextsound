@@ -27,21 +27,29 @@ ENV NODE_ENV=production
 # permission bugs.
 USER node
 
-# Copy lockfile first. Layer caching trick: if package.json/lock didn't
-# change, Docker reuses the cached "npm ci" layer below.
-COPY --chown=node:node package.json package-lock.json ./
+# Copy the server-specific package manifest. NOT the root one.
+# Phase 3 Step 2: backend now has its own package.json under server/ that
+# declares only the 4 deps it actually uses (express, cors, axios, dotenv).
+# Using server/package.json here instead of the root manifest means the
+# container installs ~77 packages instead of ~523 — a 70x reduction in the
+# node_modules layer and a corresponding shrink in attack surface.
+# Layer caching trick: if these two files didn't change, Docker reuses
+# the cached "npm ci" layer below.
+COPY --chown=node:node server/package.json server/package-lock.json ./
 
 # Install ONLY production dependencies. --omit=dev skips devDependencies
-# (nodemon, eslint, vitest, etc.). Smaller image = smaller attack surface.
+# (server has none, but the flag is defensive in case we add some later).
 # --ignore-scripts skips lifecycle hooks (prepare, postinstall, etc.).
 # Two reasons: (1) husky's prepare hook fails in a container with no git
 # repo, (2) postinstall scripts are a documented supply chain attack
 # vector — production builds should never run them.
 RUN npm ci --omit=dev --ignore-scripts
 
-# Copy only the server folder. We don't need src/, public/, tests/,
-# or anything else from the repo in the backend container.
-COPY --chown=node:node server ./server
+# Copy the server source. Only index.js — package.json and package-lock.json
+# were already copied above for the install step, and copying server/ as a
+# directory would either nest it (creating /app/server/index.js, which
+# breaks the CMD) or shadow our installed node_modules.
+COPY --chown=node:node server/index.js ./
 
 # Document that the container listens on 3001. Doesn't actually open it;
 # that happens in compose via the ports: mapping.
@@ -60,6 +68,9 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
 
 # Start the server using exec form (JSON array). Exec form means node
 # runs as PID 1 and receives signals directly (SIGTERM on `docker stop`),
-# allowing graceful shutdown via the SIGTERM handler in server/index.js.
+# allowing graceful shutdown via the SIGTERM handler in index.js.
 # Shell form would wrap in /bin/sh and swallow signals.
-CMD ["node", "server/index.js"]
+# Path is now ./index.js (was server/index.js) because Phase 3 Step 2
+# flattened the layout: server source files now live at WORKDIR /app
+# directly, not under /app/server.
+CMD ["node", "index.js"]

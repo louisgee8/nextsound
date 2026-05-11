@@ -1,0 +1,20 @@
+{
+  "name": "nextsound-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Express proxy for NextSound. Handles Spotify OAuth client-credentials flow, caches access tokens, and forwards /api/spotify/* to the Spotify Web API with per-endpoint Cache-Control headers.",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.12.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0"
+  }
+}
