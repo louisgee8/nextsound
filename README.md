@@ -264,11 +264,10 @@ Frontend expects `:5173`, backend expects `:3001`. Override the backend with `PO
 
 This project is being upgraded to production-grade deployed status. Tracked in detail in `resources/IMPROVEMENT_PLAN.md` and the companion Notion tracker.
 
-- [x] Phase 1 — Foundation (testing, README, linting)
-- [ ] Phase 2 — DevOps layer (Dockerfile, docker-compose, GitHub Actions CI/CD)
-- [ ] Phase 3 — Feature upgrades (observability, analytics, auth)
-- [ ] Phase 4 — Deployment (AWS ECS or equivalent, Terraform)
-- [ ] Phase 5 — Polish (performance budget, a11y audit, release automation)
+- [x] **Phase 1 — Foundation** — strict TypeScript, Vitest + RTL + MSW (51 tests), README, ESLint flat config
+- [x] **Phase 2 — App features + DevOps layer** — audio player with cross-route persistence, queue (add / clear / play-next), multi-stage Dockerfiles, docker-compose, nginx reverse proxy, secrets discipline
+- [ ] **Phase 3 — Production hardening + cloud deploy** — nginx security headers (CSP, HSTS, X-Frame-Options), `/api/*` rate limiting, service worker auto-activation, GitHub Actions CI/CD, public deploy on Fly.io
+- [ ] **Phase 4 — Feature polish** — queue persistence to `localStorage`, drag-to-reorder, a11y audit, performance budget, custom domain
 
 ## Credits
 
