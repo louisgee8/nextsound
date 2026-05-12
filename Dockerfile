@@ -63,6 +63,12 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # can handle the route client-side. Also adds asset caching and gzip.
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Phase 3 Step 3 Pass 3: http-context directives (rate-limit zone + real IP
+# rewriting for Fly.io edge). Loaded with 00- prefix so it parses BEFORE
+# default.conf, ensuring the `api` zone exists when default.conf references
+# it via `limit_req zone=api ...`.
+COPY nginx-http.conf /etc/nginx/conf.d/00-http.conf
+
 # Document that this container listens on port 80 (HTTP).
 # EXPOSE does NOT actually open the port. That happens at "docker run"
 # time with the -p flag. EXPOSE is metadata for humans and tooling.
