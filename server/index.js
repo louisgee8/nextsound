@@ -203,8 +203,15 @@ app.use((req, res) => {
 })
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Spotify Proxy Server running on port ${PORT}`)
+// HOST defaults to '::' (IPv6 all-interfaces, also accepts IPv4 via
+// IPv4-mapped addresses). Required for Fly.io: their 6PN WireGuard
+// mesh is IPv6-only, so binding to '0.0.0.0' (IPv4-only) would make
+// us unreachable from other Fly Machines and from Fly Proxy itself.
+// Node's default IS '::' when IPv6 is available, but being explicit
+// removes any ambiguity and documents the choice for future readers.
+const HOST = process.env.HOST || '::'
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Spotify Proxy Server running on ${HOST}:${PORT}`)
   console.log(`📡 Health check: http://localhost:${PORT}/health`)
   console.log(`🎵 Proxy endpoint: http://localhost:${PORT}/api/spotify/*`)
 

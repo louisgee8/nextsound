@@ -26,7 +26,14 @@ services:
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
       - FRONTEND_URL=http://localhost:8080
     networks:
-      - nextsound-net
+      nextsound-net:
+        # Network alias makes the backend reachable at the SAME
+        # hostname nginx will use in production on Fly.io. Lets us
+        # keep a single nginx.conf for both environments — no
+        # envsubst, no environment-specific config drift. The
+        # alias is Docker-only and has no effect on Fly.
+        aliases:
+          - nextsound-louisgee8-api.flycast
     restart: unless-stopped
 
   frontend:

@@ -1,0 +1,64 @@
+# ============================================================
+# fly.api.toml — NextSound backend (Express API)
+# ============================================================
+# Private Fly app: reachable ONLY over the org's 6PN WireGuard mesh
+# at  nextsound-louisgee8-api.flycast:3001  (stable internal IPv6).
+# No public IPs are allocated; the frontend app reaches us via
+# Fly Proxy → Flycast → this app's Machines.
+#
+# Why "flycast" instead of ".internal":
+#   - .internal returns the actual Machine IPv6, which changes when
+#     a machine restarts/replaces. nginx would cache a dead IP.
+#   - .flycast is a stable per-app private IPv6 that Fly Proxy
+#     load-balances to whichever Machine is alive, AND can wake
+#     stopped machines on demand (auto_start_machines).
+#
+# Deploy with:
+#   fly deploy --config fly.api.toml --dockerfile Dockerfile.server
+# ============================================================
+
+app = "nextsound-louisgee8-api"
+primary_region = "iad"  # Virginia. Close to most North America users.
+
+[build]
+  dockerfile = "Dockerfile.server"
+
+# Backend env vars. NODE_ENV is set in the Dockerfile already; PORT
+# matches what server/index.js reads.
+# Spotify credentials are NOT here — those are secrets, injected via
+# `fly secrets set` (see deploy commands).
+[env]
+  PORT = "3001"
+  # FRONTEND_URL is used by the CORS allowlist. Once the frontend is
+  # deployed, update this to the live .fly.dev URL. For initial deploy
+  # we use a placeholder; CORS only matters if anything ever calls the
+  # backend directly (it shouldn't — everything goes through nginx).
+  FRONTEND_URL = "https://nextsound-louisgee8.fly.dev"
+
+# A `[http_service]` block on a private app tells Fly Proxy how to
+# route Flycast traffic to this app. internal_port matches Express's
+# listen port. force_https=false because internal mesh traffic is
+# already on Fly's encrypted WireGuard fabric.
+[http_service]
+  internal_port = 3001
+  force_https = false
+  auto_stop_machines = "stop"      # idle machine sleeps after ~5 min
+  auto_start_machines = true       # wake on incoming Flycast request
+  min_machines_running = 0         # full sleep allowed; portfolio scale
+
+  # Health checks: Fly Proxy hits /health every 15s. Three consecutive
+  # failures and the machine is marked unhealthy. Matches the
+  # Dockerfile.server HEALTHCHECK at the container layer.
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+
+# Smallest VM Fly offers. 256 MB is plenty for an Express proxy that
+# just forwards Spotify API calls. Bump to shared-cpu-2x or 512 MB
+# later if profiling shows GC pressure.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

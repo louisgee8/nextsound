@@ -1,0 +1,43 @@
+# ============================================================
+# fly.frontend.toml — NextSound frontend (nginx + React static)
+# ============================================================
+# Public Fly app. Fly Proxy terminates TLS at the edge with a
+# free Let's Encrypt cert for *.fly.dev; our nginx stays HTTP-only
+# on internal_port 80. force_https=true redirects all :80 traffic
+# to :443 at the proxy layer.
+#
+# This app reaches the backend via the private Flycast address
+# nextsound-louisgee8-api.flycast:3001 (hard-coded in nginx.conf).
+#
+# Deploy with:
+#   fly deploy --config fly.frontend.toml --dockerfile Dockerfile
+# ============================================================
+
+app = "nextsound-louisgee8"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 80
+  force_https = true
+  # Keep at least one machine warm so first-time visitors don't pay
+  # the cold-start latency. We can drop this to 0 later if cost matters,
+  # but a shared-cpu-1x idle is essentially free.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  # Health check: nginx serves index.html at /. Any 2xx response means
+  # the static bundle is being served correctly.
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
