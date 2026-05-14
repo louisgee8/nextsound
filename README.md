@@ -7,6 +7,12 @@
   </p>
 
   <p>
+    <a href="https://github.com/louisgee8/nextsound/actions/workflows/ci.yml">
+      <img src="https://github.com/louisgee8/nextsound/actions/workflows/ci.yml/badge.svg" alt="CI/CD" />
+    </a>
+    <a href="https://nextsound-louisgee8.fly.dev">
+      <img src="https://img.shields.io/badge/live-demo-success?logo=fly.io&logoColor=white" alt="Live demo" />
+    </a>
     <img src="https://img.shields.io/badge/React-18-149ECA?logo=react&logoColor=white" alt="React 18" />
     <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
     <img src="https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white" alt="Vite 7" />
