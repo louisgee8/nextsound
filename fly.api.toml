@@ -42,9 +42,10 @@ primary_region = "iad"  # Virginia. Close to most North America users.
 [http_service]
   internal_port = 3001
   force_https = false
-  auto_stop_machines = "stop"      # idle machine sleeps after ~5 min
+  auto_stop_machines = "stop"      # idle replicas above min sleep after ~5 min
   auto_start_machines = true       # wake on incoming Flycast request
-  min_machines_running = 0         # full sleep allowed; portfolio scale
+  min_machines_running = 1         # keep 1 warm: avoids 502 on cold-start
+                                   # (nginx proxy_connect_timeout < Fly wake time)
 
   # Health checks: Fly Proxy hits /health every 15s. Three consecutive
   # failures and the machine is marked unhealthy. Matches the

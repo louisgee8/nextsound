@@ -1,0 +1,124 @@
+# ============================================================
+# NextSound CI/CD — GitHub Actions
+# ============================================================
+# Phase 3 Step 5. Triggers:
+#   - Every push to main:  test → build → deploy → smoke test
+#   - Every PR to main:    test → build only (no deploy, no smoke)
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   FLY_API_TOKEN          — `fly tokens create deploy -a nextsound-louisgee8-api`
+#                            then concat with `fly tokens create deploy -a nextsound-louisgee8`
+#                            OR generate one org-scoped token: `fly tokens create org personal`
+#   SPOTIFY_CLIENT_ID      — already in your local .env
+#   SPOTIFY_CLIENT_SECRET  — already in your local .env
+#
+# Why this layout:
+#   - Separate test/build/deploy jobs let GitHub parallelize what it can
+#     and clearly mark which stage failed in the UI.
+#   - deploy depends on test+build so a failing test blocks production.
+#   - smoke runs AFTER deploy so we catch regressions that only manifest
+#     against the live URL (TLS, edge headers, Flycast routing).
+# ============================================================
+
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs on the same branch when a newer push lands.
+# Saves Actions minutes and avoids deploying a stale commit on top of a
+# newer one if the older job finishes second.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # --------------------------------------------------------
+  # Test: type-check + unit tests on the frontend.
+  # Backend has no tests yet (Phase 4 backlog).
+  # --------------------------------------------------------
+  test:
+    name: Test (typecheck + unit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          # Built-in npm cache keyed on package-lock.json. Speeds up
+          # subsequent runs from ~60s install to ~5s.
+          cache: npm
+
+      - name: Install dependencies
+        # --ignore-scripts skips husky's prepare hook (no .git/hooks in CI
+        # checkout, hook install would fail) AND skips any postinstall
+        # supply-chain shenanigans — same defensive flag the backend
+        # Dockerfile uses.
+        run: npm ci --ignore-scripts
+
+      - name: TypeScript type-check
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npm test -- --run
+
+  # --------------------------------------------------------
+  # Build: ensure both Dockerfiles build cleanly.
+  # We don't push images — Fly's builder rebuilds during deploy.
+  # This job exists to catch Dockerfile breaks before deploy.
+  # --------------------------------------------------------
+  build:
+    name: Build (Docker)
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build frontend image
+        run: docker build -f Dockerfile -t nextsound-frontend:ci .
+
+      - name: Build backend image
+        run: docker build -f Dockerfile.server -t nextsound-backend:ci .
+
+  # --------------------------------------------------------
+  # Deploy: only on push to main, never on PRs.
+  # Backend deploys first (frontend nginx resolves its Flycast hostname
+  # at boot — backend must exist first).
+  # --------------------------------------------------------
+  deploy:
+    name: Deploy to Fly.io
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency: deploy-${{ github.ref }}
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy backend (private)
+        run: flyctl deploy --config fly.api.toml --dockerfile Dockerfile.server --remote-only
+
+      - name: Deploy frontend (public)
+        run: flyctl deploy --config fly.frontend.toml --dockerfile Dockerfile --remote-only
+
+  # --------------------------------------------------------
+  # Smoke: hit the live URL after deploy. Step 7.
+  # If this fails the deploy is technically already live — consider
+  # adding an auto-rollback step in Phase 4.
+  # --------------------------------------------------------
+  smoke:
+    name: Smoke test (live URL)
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run smoke test
+        run: bash tests/smoke.sh https://nextsound-louisgee8.fly.dev
