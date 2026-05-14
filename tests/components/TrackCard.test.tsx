@@ -20,9 +20,20 @@
  *    user-facing behavior, not just "does the code run."
  */
 import { describe, it, expect } from 'vitest'
+import type { ReactElement } from 'react'
 import { render, screen } from '@testing-library/react'
 import { TrackCard } from '@/components/ui/TrackCard'
+import { AudioPlayerProvider } from '@/context/audioPlayerContext'
 import type { ITrack } from '@/types'
+
+/**
+ * Custom render helper that wraps the component under test in
+ * AudioPlayerProvider. TrackCard calls useAudioPlayerContext() which
+ * throws if no provider is in the tree — a deliberate fail-loud guard.
+ * Promote this to tests/test-utils.tsx if a second test file ever needs
+ * the same wrapper.
+ */
+const renderWithAudio = (ui: ReactElement) => render(ui, { wrapper: AudioPlayerProvider })
 
 // Test fixture - a realistic track object
 const mockTrack: ITrack = {
@@ -40,42 +51,42 @@ const mockTrack: ITrack = {
 
 describe('TrackCard', () => {
   it('renders the track title', () => {
-    render(<TrackCard track={mockTrack} category="popular" />)
+    renderWithAudio(<TrackCard track={mockTrack} category="popular" />)
     expect(screen.getByText('Blinding Lights')).toBeInTheDocument()
   })
 
   it('renders the artist name', () => {
-    render(<TrackCard track={mockTrack} category="popular" />)
+    renderWithAudio(<TrackCard track={mockTrack} category="popular" />)
     expect(screen.getByText('The Weeknd')).toBeInTheDocument()
   })
 
   it('renders album art with correct alt text', () => {
-    render(<TrackCard track={mockTrack} category="popular" />)
+    renderWithAudio(<TrackCard track={mockTrack} category="popular" />)
     const img = screen.getByAltText('Blinding Lights')
     expect(img).toBeInTheDocument()
     expect(img).toHaveAttribute('src', mockTrack.poster_path)
   })
 
   it('shows album name in detailed variant', () => {
-    render(<TrackCard track={mockTrack} category="popular" variant="detailed" />)
+    renderWithAudio(<TrackCard track={mockTrack} category="popular" variant="detailed" />)
     expect(screen.getByText('After Hours')).toBeInTheDocument()
   })
 
   it('shows formatted duration in detailed variant', () => {
-    render(<TrackCard track={mockTrack} category="popular" variant="detailed" />)
+    renderWithAudio(<TrackCard track={mockTrack} category="popular" variant="detailed" />)
     // 200040ms = 3 minutes, 20 seconds = "3:20"
     expect(screen.getByText('3:20')).toBeInTheDocument()
   })
 
   it('does not show album/duration in compact variant', () => {
-    render(<TrackCard track={mockTrack} category="popular" variant="compact" />)
+    renderWithAudio(<TrackCard track={mockTrack} category="popular" variant="compact" />)
     // In compact mode, the album and duration should not appear
     expect(screen.queryByText('After Hours')).not.toBeInTheDocument()
   })
 
   it('handles missing artist gracefully', () => {
     const trackNoArtist: ITrack = { ...mockTrack, artist: undefined }
-    render(<TrackCard track={trackNoArtist} category="popular" />)
+    renderWithAudio(<TrackCard track={trackNoArtist} category="popular" />)
     expect(screen.getByText('Unknown Artist')).toBeInTheDocument()
   })
 
@@ -86,7 +97,7 @@ describe('TrackCard', () => {
       name: '',
       title: '',
     }
-    render(<TrackCard track={trackNoTitle} category="popular" />)
+    renderWithAudio(<TrackCard track={trackNoTitle} category="popular" />)
     expect(screen.getByText('Unknown Track')).toBeInTheDocument()
   })
 
@@ -96,7 +107,7 @@ describe('TrackCard', () => {
       original_title: '',
       name: 'Fallback Name',
     }
-    render(<TrackCard track={trackNameOnly} category="popular" />)
+    renderWithAudio(<TrackCard track={trackNameOnly} category="popular" />)
     expect(screen.getByText('Fallback Name')).toBeInTheDocument()
   })
 })
